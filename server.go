@@ -4,6 +4,8 @@ package main
 import (
 	"strings"
 	"fmt"
+	"errors"
+	"strconv"
 )
 
 const (
@@ -12,22 +14,54 @@ const (
 
 
 
-func getProtocolVersionMessage(protocol_version string) string {
+// The parameter protocol_version is meant to be a string that is the protocol version you would like to get the message of.
+// It returns the message and then an error if one is present.
+func getProtocolVersionMessage(protocol_version string) (string, error) {
+	if protocol_version == "" {
+		return "", errors.New("The protocol version was an empty string")
+	}
+
+
+	if strings.Count(protocol_version, ".") > 1 {
+		return "", errors.New("Too many (.) period characters! Expected just one")
+	}
+
+	if !strings.Contains(protocol_version, ".") {
+		return "", errors.New("Protocol version invalid. Does not contain a period (.) Expected one")
+	}
+
 	const (
 		MAX_PADDING = 3
 	)
+
 	splitString := strings.Split(protocol_version, ".")
+
 	majorVersion := splitString[0]
+	// It is needed to check if the major version and minor version are indeed integers.
+	if _, err := strconv.Atoi(majorVersion); err != nil {
+		// If err is not nil, strconv is not an integer.
+		return "", errors.New("Version number to the left of the period (.) is not a valid integer")
+	}
+	if len(majorVersion) > MAX_PADDING {
+		return "", errors.New("The version number to the left of the (.) had more than the max padding of characters!")
+	}
+
 	minorVersion := splitString[1]
+	if _, err := strconv.Atoi(majorVersion); err != nil {
+		// If err is not nil, strconv is not an integer.
+		return "", errors.New("Version number to the right of the period (.) is not a valid integer")
+	}
+	if len(minorVersion) > MAX_PADDING {
+		return "", errors.New("The version number to the right of the (.) had more than the max padding 3 characters!")
+	}
 
 	minorPaddingLength := MAX_PADDING - len(minorVersion)
 	majorPaddingLength := MAX_PADDING - len(majorVersion)
 
-
 	minorPadding := strings.Repeat("0", minorPaddingLength)
 	majorPadding := strings.Repeat("0", majorPaddingLength)
 
-	return fmt.Sprintf("RFB %s%s.%s%s\n", majorPadding, majorVersion, minorPadding, minorVersion)
+	return fmt.Sprintf("RFB %s%s.%s%s\n", majorPadding, majorVersion, minorPadding, minorVersion), nil
 }
 
 func doProtocolVersionHandshake() string {
