@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"os"
 	"encoding/json"
+	"net"
 )
 
 const (
@@ -74,9 +75,12 @@ func getProtocolVersionMessage(protocol_version string) (string, error) {
 	return fmt.Sprintf("RFB %s%s.%s%s\n", majorPadding, majorVersion, minorPadding, minorVersion), nil
 }
 
-func doProtocolVersionHandshake() string {
-	// Nothing for right now...
-	return "nothing #yoloswag.. soon this will be awesome..!"
+func doProtocolVersionHandshake(conn net.Conn) error {
+	// Not error checking right now.
+	// TODO: Set up error checking
+	protocol_version_message, _ := getProtocolVersionMessage(PROTOCOL_VERSION)
+	fmt.Fprint(conn, protocol_version_message)
+	return nil
 }
 
 func doSecurityHandshake() {
@@ -135,6 +139,12 @@ func loadDefaultConfig() (settings *Settings, err error) {
 	return settings, nil
 }
 
+func handleConnection(connection net.Conn) {
+	fmt.Print("Connection is set up... Now listening...")
+	defer connection.Close()
+	doProtocolVersionHandshake(connection)
+}
+
 func main() {
 	configFile, err := os.Open(CONFIG_FILE_NAME)
 	var settings *Settings
@@ -145,5 +155,18 @@ func main() {
 	} else {
 		settings, _ = loadConfigFromFile(configFile)
 	}
-	fmt.Printf("Settings loaded! They are: %q", *settings)
+	fmt.Printf("Settings loaded! They are: %q\n", *settings)
+	ln, err := net.Listen("tcp", settings.Port)
+
+	if err != nil {
+		// handle error
+	}
+	for {
+		connection, err := ln.Accept()
+		if err != nil {
+
+		}
+		go handleConnection(connection)
+	}
 }
+
