@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ColdSauce/Gotem"
+	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -70,9 +71,12 @@ func getProtocolVersionMessage(protocol_version string) (string, error) {
 	return fmt.Sprintf("RFB %s%s.%s%s\n", majorPadding, majorVersion, minorPadding, minorVersion), nil
 }
 
-func doProtocolVersionHandshake() string {
-	// Nothing for right now...
-	return "nothing #yoloswag.. soon this will be awesome..!"
+func doProtocolVersionHandshake(conn net.Conn) error {
+	// Not error checking right now.
+	// TODO: Set up error checking
+	protocol_version_message, _ := getProtocolVersionMessage(PROTOCOL_VERSION)
+	fmt.Fprint(conn, protocol_version_message)
+	return nil
 }
 
 func doSecurityHandshake() {
@@ -129,16 +133,34 @@ func loadDefaultConfig() (settings *Settings, err error) {
 	return settings, nil
 }
 
+func handleConnection(connection net.Conn) {
+	fmt.Print("Connection is set up... Now listening...")
+	defer connection.Close()
+	doProtocolVersionHandshake(connection)
+}
+
 func main() {
-	// configFile, err := os.Open(CONFIG_FILE_NAME)
-	// var settings *Settings
-	// if err != nil {
-	// 	fmt.Errorf("Could not open the file %s. Are you sure it's really there? Reason: %q\n", CONFIG_FILE_NAME)
-	// 	fmt.Errorf("Going to be using the default config, instead...\n")
-	// 	settings, _ = loadDefaultConfig()
-	// } else {
-	// 	settings, _ = loadConfigFromFile(configFile)
-	// }
-	// fmt.Printf("Settings loaded! They are: %q", *settings)
+	configFile, err := os.Open(CONFIG_FILE_NAME)
+	var settings *Settings
+	if err != nil {
+		fmt.Errorf("Could not open the file %s. Are you sure it's really there? Reason: %q\n", CONFIG_FILE_NAME)
+		fmt.Errorf("Going to be using the default config, instead...\n")
+		settings, _ = loadDefaultConfig()
+	} else {
+		settings, _ = loadConfigFromFile(configFile)
+	}
+	fmt.Printf("Settings loaded! They are: %q\n", *settings)
+	ln, err := net.Listen("tcp", settings.Port)
+
+	if err != nil {
+		// handle error
+	}
+	for {
+		connection, err := ln.Accept()
+		if err != nil {
+
+		}
+		go handleConnection(connection)
+	}
 	Gotem.MoveMouseTo(&Gotem.Point{1230, 30})
 }
