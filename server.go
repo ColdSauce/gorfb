@@ -6,11 +6,22 @@ import (
 	"fmt"
 	"errors"
 	"strconv"
+	"os"
+	"encoding/json"
+	"io"
 )
 
 const (
 	PROTOCOL_VERSION = "3.8"
+	CONFIG_FILE_NAME = "config.json"
 )
+
+type Settings struct {
+	Port string
+	Ip_address string
+	Max_connections int
+}
+
 
 
 
@@ -100,7 +111,40 @@ func doSecurityHandshake() {
 
 }
 
+
+func loadConfigFromFile(file *os.File) (settings *Settings, error) {
+	if file == nil {
+		return nil, errors.New("loadConfigFromFile: file is nil!")
+	}
+	jsonParser := json.NewDecoder(file)
+	if err := jsonParser.Decode(&settings); err != nil {
+		errorMessage := fmt.Sprintf("Could not decode file %s, check if it is valid JSON. Error message: %q\n", CONFIG_FILE_NAME, err)
+		return nil, errors.New(errorMessage)
+	}
+	return &settings, nil
+}
+
+// Sets up the default settings. To be used as a fallback for when settings cannot be obtained from the CONFIG_FILE_NAME file
+func loadDefaultConfig() (settings *Settings, error) {
+	const (
+		DEFAULT_IP_ADDRESS = "127.0.0.1"
+		DEFAULT_PORT = ":8000"
+		DEFAULT_MAX_CONNECTIONS = "50"
+	)
+	settings = &Settings{DEFAULT_IP_ADDRESS, DEFAULT_PORT, DEFAULT_MAX_CONNECTIONS}
+	return settings
+}
+
 func main() {
-	fmt.Println(doProtocolVersionHandshake())
+	configFile, err := os.Open(CONFIG_FILE_NAME)
+	if err != nil {
+		fmt.Errorf("Could not open the file %s. Are you sure it's really there? Reason: %q\n", CONFIG_FILE_NAME)
+		fmt.Errorf("Going to be using the default config, instead...\n")
+		loadDefaultConfig()
+	} else {
+		loadConfigFromFile(configFile)
+	}
+
+
 }
 
