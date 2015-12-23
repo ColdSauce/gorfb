@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"os"
 	"encoding/json"
-	"io"
 )
 
 const (
@@ -17,9 +16,9 @@ const (
 )
 
 type Settings struct {
-	Port string
 	Ip_address string
-	Max_connections int
+	Port string
+	Max_connections string
 }
 
 
@@ -112,7 +111,7 @@ func doSecurityHandshake() {
 }
 
 
-func loadConfigFromFile(file *os.File) (settings *Settings, error) {
+func loadConfigFromFile(file *os.File) (settings *Settings, err error) {
 	if file == nil {
 		return nil, errors.New("loadConfigFromFile: file is nil!")
 	}
@@ -121,30 +120,30 @@ func loadConfigFromFile(file *os.File) (settings *Settings, error) {
 		errorMessage := fmt.Sprintf("Could not decode file %s, check if it is valid JSON. Error message: %q\n", CONFIG_FILE_NAME, err)
 		return nil, errors.New(errorMessage)
 	}
-	return &settings, nil
+	return settings, nil
 }
 
 // Sets up the default settings. To be used as a fallback for when settings cannot be obtained from the CONFIG_FILE_NAME file
-func loadDefaultConfig() (settings *Settings, error) {
+// error is there in case it is needed in the future.
+func loadDefaultConfig() (settings *Settings, err error) {
 	const (
 		DEFAULT_IP_ADDRESS = "127.0.0.1"
 		DEFAULT_PORT = ":8000"
 		DEFAULT_MAX_CONNECTIONS = "50"
 	)
 	settings = &Settings{DEFAULT_IP_ADDRESS, DEFAULT_PORT, DEFAULT_MAX_CONNECTIONS}
-	return settings
+	return settings, nil
 }
 
 func main() {
 	configFile, err := os.Open(CONFIG_FILE_NAME)
+	var settings *Settings
 	if err != nil {
 		fmt.Errorf("Could not open the file %s. Are you sure it's really there? Reason: %q\n", CONFIG_FILE_NAME)
 		fmt.Errorf("Going to be using the default config, instead...\n")
-		loadDefaultConfig()
+		settings, _ = loadDefaultConfig()
 	} else {
-		loadConfigFromFile(configFile)
+		settings, _ = loadConfigFromFile(configFile)
 	}
-
-
+	fmt.Printf("Settings loaded! They are: %q", *settings)
 }
-
