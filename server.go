@@ -1,13 +1,13 @@
 package main
 
-
 import (
-	"strings"
-	"fmt"
-	"errors"
-	"strconv"
-	"os"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/ColdSauce/Gotem"
+	"os"
+	"strconv"
+	"strings"
 )
 
 const (
@@ -16,13 +16,10 @@ const (
 )
 
 type Settings struct {
-	Ip_address string
-	Port string
+	Ip_address      string
+	Port            string
 	Max_connections string
 }
-
-
-
 
 // The parameter protocol_version is meant to be a string that is the protocol version you would like to get the message of.
 // It returns the message and then an error if one is present.
@@ -30,7 +27,6 @@ func getProtocolVersionMessage(protocol_version string) (string, error) {
 	if protocol_version == "" {
 		return "", errors.New("The protocol version was an empty string")
 	}
-
 
 	if strings.Count(protocol_version, ".") > 1 {
 		return "", errors.New("Too many (.) period characters! Expected just one")
@@ -82,24 +78,24 @@ func doProtocolVersionHandshake() string {
 func doSecurityHandshake() {
 
 	const (
-		INVALID = 0
-		NONE = 1
-		VNC_AUTH = 2
-		RA2 = 5
-		RA2ne = 6
-		Tight = 16
-		Ultra = 17
-		TLS = 18
-		VENCRYPT = 19
-		GTK_VNC_SASL = 20
-		MD5_HASH = 21
+		INVALID        = 0
+		NONE           = 1
+		VNC_AUTH       = 2
+		RA2            = 5
+		RA2ne          = 6
+		Tight          = 16
+		Ultra          = 17
+		TLS            = 18
+		VENCRYPT       = 19
+		GTK_VNC_SASL   = 20
+		MD5_HASH       = 21
 		COLIN_DEAN_XVP = 22
 	)
 
 	type securityResult struct {
 		message uint32 // can be either 0 or 1.
-			       // 0 = OK
-			       // 1 = Failed
+		// 0 = OK
+		// 1 = Failed
 	}
 
 	type reasonForFailure struct {
@@ -107,9 +103,7 @@ func doSecurityHandshake() {
 		reasonString []byte
 	}
 
-
 }
-
 
 func loadConfigFromFile(file *os.File) (settings *Settings, err error) {
 	if file == nil {
@@ -127,8 +121,8 @@ func loadConfigFromFile(file *os.File) (settings *Settings, err error) {
 // error is there in case it is needed in the future.
 func loadDefaultConfig() (settings *Settings, err error) {
 	const (
-		DEFAULT_IP_ADDRESS = "127.0.0.1"
-		DEFAULT_PORT = ":8000"
+		DEFAULT_IP_ADDRESS      = "127.0.0.1"
+		DEFAULT_PORT            = ":8000"
 		DEFAULT_MAX_CONNECTIONS = "50"
 	)
 	settings = &Settings{DEFAULT_IP_ADDRESS, DEFAULT_PORT, DEFAULT_MAX_CONNECTIONS}
@@ -136,14 +130,15 @@ func loadDefaultConfig() (settings *Settings, err error) {
 }
 
 func main() {
-	configFile, err := os.Open(CONFIG_FILE_NAME)
-	var settings *Settings
-	if err != nil {
-		fmt.Errorf("Could not open the file %s. Are you sure it's really there? Reason: %q\n", CONFIG_FILE_NAME)
-		fmt.Errorf("Going to be using the default config, instead...\n")
-		settings, _ = loadDefaultConfig()
-	} else {
-		settings, _ = loadConfigFromFile(configFile)
-	}
-	fmt.Printf("Settings loaded! They are: %q", *settings)
+	// configFile, err := os.Open(CONFIG_FILE_NAME)
+	// var settings *Settings
+	// if err != nil {
+	// 	fmt.Errorf("Could not open the file %s. Are you sure it's really there? Reason: %q\n", CONFIG_FILE_NAME)
+	// 	fmt.Errorf("Going to be using the default config, instead...\n")
+	// 	settings, _ = loadDefaultConfig()
+	// } else {
+	// 	settings, _ = loadConfigFromFile(configFile)
+	// }
+	// fmt.Printf("Settings loaded! They are: %q", *settings)
+	Gotem.MoveMouseTo(&Gotem.Point{1230, 30})
 }
